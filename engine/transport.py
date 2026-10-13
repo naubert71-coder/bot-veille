@@ -32,7 +32,7 @@ def _send(config: dict, subject: str, text: str, html: str) -> None:
     msg["Message-ID"] = make_msgid(domain=sender_domain)
 
     msg.set_content(text)
-    msg.add_alternative(html, subtype="html")
+    msg.add_content(html, subtype="html")
 
     with smtplib.SMTP_SSL(host, port) as smtp:
         smtp.login(sender, password)
