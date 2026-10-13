@@ -1,6 +1,7 @@
 """Envoi du digest par SMTP (multipart texte + HTML)."""
 import os
 import smtplib
+from datetime import datetime
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
 
@@ -48,8 +49,6 @@ def _send(config: dict, subject: str, text: str, html: str) -> None:
 
 def send_digest(config: dict, html_body: str) -> None:
     """Envoie le digest normal."""
-    from datetime import datetime
-
     prefix = config.get("output", {}).get("subject_prefix", "📚 Veille")
     date_str = datetime.now().strftime("%d/%m/%Y")
     subject = f"{prefix} — {date_str}"
@@ -63,8 +62,6 @@ def send_digest(config: dict, html_body: str) -> None:
 
 def send_empty(config: dict, reason: str) -> None:
     """Envoie le mail 'aucune nouveauté'."""
-    from datetime import datetime
-
     prefix = config.get("output", {}).get("subject_prefix", "📭 Veille")
     date_str = datetime.now().strftime("%d/%m/%Y")
     subject = f"{prefix} — {date_str} (aucune nouveauté)"
