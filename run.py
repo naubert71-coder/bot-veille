@@ -30,4 +30,31 @@ def main() -> None:
     prompt_template = _load_prompt(config)
 
     entries = collect.collect_sources(config)
-    if
+    if not entries:
+        print("Aucune entrée récupérée sur la période.")
+        transport.send_empty(config, "Aucun article récupéré sur les flux RSS.")
+        return
+
+    result = triage.triage(config, entries, prompt_template)
+
+    if result is None:
+        print("Tous les modèles étaient temporairement indisponibles.")
+        transport.send_empty(config, "Modèles Gemini temporairement indisponibles.")
+        return
+
+    if result == "AUCUN" or len(result) == 0:
+        print("Aucun article pertinent retenu après filtrage.")
+        transport.send_empty(config, "Aucun article pertinent après filtrage.")
+        return
+
+    html = render.render_cards(config, result)
+    transport.send_digest(config, html)
+    print("E-mail HTML envoyé avec succès.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:
+        print(f"ERREUR FATALE : {exc}")
+        sys.exit(1)
