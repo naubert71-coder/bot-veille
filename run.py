@@ -41,4 +41,26 @@ def main() -> None:
         _maybe_send_empty(config, "No article collected from the RSS feeds.")
         return
 
-    result = triage.triage(config, entries, prompt
+    result = triage.triage(config, entries, prompt_template)
+
+    if result is None:
+        print("All models were temporarily unavailable.")
+        _maybe_send_empty(config, "Gemini models temporarily unavailable.")
+        return
+
+    if result == "NONE" or len(result) == 0:
+        print("No relevant article retained after filtering.")
+        _maybe_send_empty(config, "No relevant article after filtering.")
+        return
+
+    html = render.render_cards(config, result)
+    transport.send_digest(config, html)
+    print("HTML email sent successfully.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:
+        print(f"FATAL ERROR: {exc}")
+        sys.exit(1)
