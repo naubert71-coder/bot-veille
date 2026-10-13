@@ -55,14 +55,13 @@ def triage(config: dict, entries: list[str], prompt_template: str) -> str | None
     for model_name in model_chain:
         for attempt in range(3):
             try:
-                print(
-                    f"Tentative avec {model_name} (essai {attempt + 1}/3)..."
-                )
+                print(f"Tentative avec {model_name} (essai {attempt + 1}/3)...")
                 response = client.models.generate_content(
                     model=model_name,
                     contents=prompt,
                 )
-                if not response.text:
+                text = getattr(response, "text", None)
+                if not text or not text.strip():
                     finish_reason = None
                     if response.candidates:
                         finish_reason = response.candidates[0].finish_reason
@@ -71,7 +70,7 @@ def triage(config: dict, entries: list[str], prompt_template: str) -> str | None
                         f"(finish_reason={finish_reason}). Modèle suivant..."
                     )
                     break
-                response_text = response.text.strip()
+                response_text = text.strip()
                 print(f"Succès avec le modèle : {model_name}")
                 break
             except errors.ServerError:
@@ -81,14 +80,10 @@ def triage(config: dict, entries: list[str], prompt_template: str) -> str | None
                 )
                 time.sleep(10)
             except errors.ClientError as exc:
-                # 429 quota / 400 requête trop grosse : attendre plutôt que
-                # griller tous les modèles d'un coup.
                 print(f"Erreur client sur {model_name} ({exc}). Attente de 30 s...")
                 time.sleep(30)
             except Exception as exc:
-                print(
-                    f"Erreur sur {model_name} ({exc}). Modèle suivant..."
-                )
+                print(f"Erreur sur {model_name} ({exc}). Modèle suivant...")
                 break
 
         if response_text:
