@@ -24,6 +24,11 @@ def _send(config: dict, subject: str, text: str, html: str) -> None:
     port = int(transport_cfg.get("smtp_port", 465))
     sender_domain = sender.split("@")[-1] if "@" in sender else "gmail.com"
 
+    # Assainit le HTML : retire tout caractère de contrôle (dont \x00) qui
+    # ferait échouer la sérialisation multipart de la stdlib.
+    html = "".join(ch for ch in html if ch == "\n" or ch == "\t" or ord(ch) >= 32)
+    text = "".join(ch for ch in text if ch == "\n" or ch == "\t" or ord(ch) >= 32)
+
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = sender
@@ -32,7 +37,7 @@ def _send(config: dict, subject: str, text: str, html: str) -> None:
     msg["Message-ID"] = make_msgid(domain=sender_domain)
 
     msg.set_content(text)
-    msg.add_content(html, subtype="html")
+    msg.add_alternative(html, subtype="html")
 
     with smtplib.SMTP_SSL(host, port) as smtp:
         smtp.login(sender, password)
