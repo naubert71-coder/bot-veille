@@ -18,10 +18,7 @@ def _pubmed_url(query_hash: str) -> str:
     )
 
 
-def _entry_to_text(title: str, link: str, summary: str, source: str, max_summary: int = 500) -> str:
-    summary = (summary or "").strip()
-    if len(summary) > max_summary:
-        summary = summary[:max_summary].rsplit(" ", 1)[0] + "…"
+def _entry_to_text(title: str, link: str, summary: str, source: str) -> str:
     return (
         f"Source : {source}\n"
         f"Titre : {title}\n"
