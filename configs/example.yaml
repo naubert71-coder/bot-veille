@@ -8,10 +8,6 @@ sources:
     # Top-tier generalist journals
     - url: "https://www.nature.com/nature.rss"
     - url: "https://www.science.org/rss/news_current.xml"
-    # Rheumatology & autoimmunity (verified feeds)
-    - url: "https://www.nature.com/nrrheum.rss"
-    - url: "https://ard.bmj.com/rss/current.xml"
-    - url: "https://www.thelancet.com/rssfeed/lanrhe_current.xml"
     # Preprints
     - url: "https://connect.biorxiv.org/biorxiv_xml.php?subject=cell_biology"
     - url: "https://connect.medrxiv.org/medrxiv_xml.php?subject=oncology"
