@@ -5,10 +5,9 @@ name: "Ma veille scientifique"
 
 sources:
   rss:
-    # 3 revues généralistes de premier plan
+    # Revues généralistes de premier plan
     - url: "https://www.nature.com/nature.rss"
     - url: "https://www.science.org/rss/news_current.xml"
-    - url: "https://www.nejm.org/rss/current.xml"
     # Préprints
     - url: "https://connect.biorxiv.org/biorxiv_xml.php?subject=cell_biology"
     - url: "https://connect.medrxiv.org/medrxiv_xml.php?subject=oncology"
