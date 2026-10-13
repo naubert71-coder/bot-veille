@@ -24,10 +24,12 @@ def _send(config: dict, subject: str, text: str, html: str) -> None:
     port = int(transport_cfg.get("smtp_port", 465))
     sender_domain = sender.split("@")[-1] if "@" in sender else "gmail.com"
 
-    # Assainit le HTML : retire tout caractère de contrôle (dont \x00) qui
-    # ferait échouer la sérialisation multipart de la stdlib.
-    html = "".join(ch for ch in html if ch == "\n" or ch == "\t" or ord(ch) >= 32)
-    text = "".join(ch for ch in text if ch == "\n" or ch == "\t" or ord(ch) >= 32)
+    if not html:
+        html = "<p>Contenu indisponible.</p>"
+    if not text:
+        text = "Contenu indisponible."
+    html = "".join(ch for ch in html if ch in "\n\t" or ord(ch) >= 32)
+    text = "".join(ch for ch in text if ch in "\n\t" or ord(ch) >= 32)
 
     msg = EmailMessage()
     msg["Subject"] = subject
