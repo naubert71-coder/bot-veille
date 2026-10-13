@@ -31,10 +31,7 @@ def strip_code_fence(text: str) -> str:
 
 def _build_prompt(prompt_template: str, entries: list[str], max_items: int) -> str:
     content = "\n\n---\n\n".join(entries[:max_items])
-    return (
-        f"{prompt_template}\n\n"
-        f"Entrées candidates :\n{content}"
-    )
+    return f"{prompt_template}\n\nEntrées candidates :\n{content}"
 
 
 def triage(config: dict, entries: list[str], prompt_template: str) -> str | None:
