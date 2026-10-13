@@ -1,20 +1,20 @@
-name: "Ma veille"
+name: "My watch"
 
 sources:
-  # Flux RSS classiques (revues, blogs, news). Remplacez par vos propres flux.
+  # Standard RSS feeds (journals, blogs, news). Replace with your own feeds.
   rss:
     - url: "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
     - url: "https://www.nature.com/nature.rss"
-  # Hash d'une recherche PubMed sauvegardée (optionnel).
-  # https://pubmed.ncbi.nlm.nih.gov -> lancez votre recherche -> RSS -> copiez le hash dans l'URL.
+  # Hash of a saved PubMed search (optional).
+  # https://pubmed.ncbi.nlm.nih.gov -> run your search -> RSS -> copy the hash from the URL.
   pubmed_query: ""
-  # Flux Google Alerts (optionnel).
+  # Google Alerts feeds (optional).
   google_alerts: []
 
 triage:
   prompt_file: "prompts/biblio.md"
-  # Adaptez selon les modèles accessibles avec VOTRE clé Gemini.
-  # Vérifiez la liste sur https://aistudio.google.com
+  # Adjust to the models accessible with YOUR Gemini key.
+  # Check the list at https://aistudio.google.com
   model_chain:
     - "gemini-3.1-flash-lite"
     - "gemini-3.6-flash"
@@ -24,8 +24,10 @@ triage:
 
 output:
   format: "cards"
-  subject_prefix: "📚 Veille"
+  subject_prefix: "📚 Watch"
   window_hours: 24
+  # Set to false to receive no email on days with nothing new.
+  send_if_empty: true
 
 transport:
   smtp_host: "smtp.gmail.com"
