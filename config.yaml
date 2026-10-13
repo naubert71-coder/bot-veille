@@ -1,29 +1,25 @@
 name: "Ma veille"
 
 sources:
+  # Flux RSS classiques (revues, blogs, news). Remplacez par vos propres flux.
   rss:
-    - url: "https://www.nature.com/leu.rss"
-    - url: "https://www.nature.com/bcj.rss"
-    - url: "https://www.nature.com/nm.rss"
-    - url: "https://www.nature.com/natcancer.rss"
-    - url: "https://ard.bmj.com/rss/current.xml"
-    - url: "https://www.thelancet.com/rssfeed/lanrhe_current.xml"
-    - url: "https://www.thelancet.com/rssfeed/lanhae_current.xml"
-    - url: "https://connect.biorxiv.org/biorxiv_xml.php?subject=immunology"
-    - url: "https://connect.biorxiv.org/biorxiv_xml.php?subject=cancer_biology"
-    - url: "https://connect.medrxiv.org/medrxiv_xml.php?subject=hematology"
-  pubmed_query: "1xGbfOrFGi2c0ihZ7Pxho9lX2gxe2zP8pnIj2i9UbYwg_gRkv7"
-  google_alerts:
-    - "https://www.google.com/alerts/feeds/10782743504173528803/1924077818225839367"
-    - "https://www.google.com/alerts/feeds/10782743504173528803/5181195810671507491"
+    - url: "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
+    - url: "https://www.nature.com/nature.rss"
+  # Hash d'une recherche PubMed sauvegardée (optionnel).
+  # https://pubmed.ncbi.nlm.nih.gov -> lancez votre recherche -> RSS -> copiez le hash dans l'URL.
+  pubmed_query: ""
+  # Flux Google Alerts (optionnel).
+  google_alerts: []
 
 triage:
   prompt_file: "prompts/biblio.md"
+  # Adaptez selon les modèles accessibles avec VOTRE clé Gemini.
+  # Vérifiez la liste sur https://aistudio.google.com
   model_chain:
-    - "gemini-3.8-flash"
-    - "gemini-3.6-flash"
     - "gemini-3.1-flash-lite"
-  max_items: 200
+    - "gemini-3.6-flash"
+    - "gemini-3.8-flash"
+  max_items: 100
   dedupe: true
 
 output:
