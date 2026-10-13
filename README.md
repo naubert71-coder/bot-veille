@@ -1,125 +1,125 @@
-# Bot Veille — veille automatisée sur flux RSS + Gemini
+# Watch Bot — automated RSS + Gemini digest
 
-Un bot de veille qui collecte des flux RSS, les trie via un LLM (Gemini),
-et vous envoie un digest HTML par e-mail chaque jour. 100 % gratuit, sans
-serveur à entretenir : le calcul tourne sur GitHub Actions, le déclenchement
-sur cron-job.org, l'IA sur le free tier Gemini, l'envoi sur Gmail SMTP.
+A monitoring bot that collects RSS feeds, triages them with an LLM (Gemini),
+and sends you a daily HTML digest by email. 100% free, no server to maintain:
+compute runs on GitHub Actions, scheduling on cron-job.org, the LLM on the
+Gemini free tier, delivery over Gmail SMTP.
 
-Chaque utilisateur configure **ses propres accès** (sa clé Gemini, son Gmail,
-son compte cron-job.org). Aucune donnée ne transite par un tiers.
+Each user configures **their own credentials** (their Gemini key, their Gmail,
+their cron-job.org account). No data ever passes through a third party.
 
 ---
 
-## Comment ça marche
+## How it works
 
 ```
 cron-job.org  ──(POST API)──▶  GitHub Actions  ──▶  run.py
                                                        │
                           ┌────────────────────────────┼────────────────┐
                           ▼                            ▼                ▼
-                    collecte RSS              tri par Gemini        envoi mail
-                  (config.yaml)            (prompts/*.md)          (SMTP)
+                    RSS collection               Gemini triage       email send
+                  (config.yaml)               (prompts/*.md)          (SMTP)
 ```
 
-- `run.py` : point d'entrée, orchestre le pipeline.
-- `config.yaml` : **le seul fichier à éditer** (sources, format, fenêtre).
-- `prompts/` : le prompt de tri — c'est là que se joue la pertinence.
-- `engine/` : la logique (collecte, tri, rendu, envoi). À ne pas toucher.
+- `run.py` : entry point, orchestrates the pipeline.
+- `config.yaml` : **the only file you edit** (sources, format, window).
+- `prompts/` : the triage prompt — this is where relevance is decided.
+- `engine/` : the logic (collect, triage, render, send). Do not touch.
 
 ---
 
 ## Installation (≈ 10 minutes)
 
-### 1. Créer votre repo
+### 1. Create your repo
 
-Sur cette page GitHub, cliquez **Use this template → Create a new repository**.
-Nommez-le (ex. `ma-veille`) et laissez-le **Public** (nécessaire pour la
-free tier GitHub Actions).
+On this GitHub page, click **Use this template → Create a new repository**.
+Name it (e.g. `my-watch`) and keep it **Public** (required for the
+GitHub Actions free tier).
 
-### 2. Configurer `config.yaml`
+### 2. Configure `config.yaml`
 
-Ouvrez `config.yaml` et adaptez :
-- `sources.rss` : vos flux RSS. `configs/example.yaml` montre un exemple complet.
-- `triage.prompt_file` : le fichier de prompt à utiliser (voir étape 3).
-- `triage.model_chain` : les modèles Gemini accessibles avec **votre** clé
-  (vérifiez la liste sur [aistudio.google.com](https://aistudio.google.com)).
+Open `config.yaml` and edit:
+- `sources.rss` : your RSS feeds. `configs/example.yaml` shows a full example.
+- `triage.prompt_file` : the prompt file to use (see step 3).
+- `triage.model_chain` : the Gemini models accessible with **your** key
+  (check the list on [aistudio.google.com](https://aistudio.google.com)).
 
-### 3. Choisir / personnaliser le prompt
+### 3. Pick / customize the prompt
 
-Le bot lit le prompt indiqué dans `config.yaml`. Deux options :
-- Partez de `prompts/biblio.md` (générique) et adaptez le **THÈME DE LA VEILLE**.
-- Copiez `prompts/example-scientifique.md` (exemple sur l'IA générative) et
-  modifiez le thème, les exclusions et les priorités selon votre sujet.
+The bot reads the prompt set in `config.yaml`. Two options:
+- Start from `prompts/biblio.md` (generic) and adapt the **WATCH THEME**.
+- Copy `prompts/example-scientifique.md` (an example on generative AI) and
+  change the theme, exclusions and priorities to fit your subject.
 
-### 4. Définir les 4 secrets GitHub
+### 4. Set the 4 GitHub secrets
 
 `Settings → Secrets and variables → Actions → New repository secret` :
 
-| Secret | Valeur |
-|--------|--------|
-| `GEMINI_API_KEY` | clé API (sur aistudio.google.com → Get API key) |
-| `EMAIL_SENDER` | l'adresse Gmail qui **envoie** |
-| `EMAIL_PASSWORD` | **mot de passe d'application** Gmail (voir ⚠️ ci-dessous) |
-| `EMAIL_RECEIVER` | l'adresse qui **reçoit** |
+| Secret | Value |
+|--------|-------|
+| `GEMINI_API_KEY` | API key (on aistudio.google.com → Get API key) |
+| `EMAIL_SENDER` | the Gmail address that **sends** |
+| `EMAIL_PASSWORD` | Gmail **app password** (see ⚠️ below) |
+| `EMAIL_RECEIVER` | the address that **receives** |
 
-> ⚠️ **`EMAIL_PASSWORD` n'est PAS votre mot de passe Gmail.** Gmail bloque
-> les connexions SMTP par mot de passe normal. Activez la vérification en
-> 2 étapes sur [myaccount.google.com](https://myaccount.google.com), puis
-> créez un **Mot de passe d'application** (Sécurité → Mots de passe
-> d'application → Mail). Copiez le code à 16 caractères **sans les espaces**.
+> ⚠️ **`EMAIL_PASSWORD` is NOT your Gmail password.** Gmail blocks SMTP
+> logins with the normal password. Turn on 2-Step Verification on
+> [myaccount.google.com](https://myaccount.google.com), then create an
+> **App password** (Security → App passwords → Mail). Copy the 16-character
+> code **without spaces**.
 
-### 5. Créer un Personal Access Token (PAT)
+### 5. Create a Personal Access Token (PAT)
 
-`Settings (compte) → Developer settings → Personal access tokens →
+`Settings (account) → Developer settings → Personal access tokens →
 Fine-grained tokens → Generate new token` :
-- **Repository access** → *Only select repositories* → votre repo `ma-veille`.
+- **Repository access** → *Only select repositories* → your `my-watch` repo.
 - **Permissions → Repository permissions → Actions → Read and write**.
 
-> ⚠️ Sans la permission **Actions: Read and write**, cron-job.org recevra un
-> `403` silencieux et le job ne partira jamais.
+> ⚠️ Without the **Actions: Read and write** permission, cron-job.org gets a
+> silent `403` and the job never runs.
 
-Copiez le token (il n'apparaît qu'une fois). **Ne le partagez jamais.**
+Copy the token (it appears only once). **Never share it.**
 
-### 6. Configurer cron-job.org
+### 6. Configure cron-job.org
 
-Sur [cron-job.org](https://cron-job.org) → **Create cronjob** :
+On [cron-job.org](https://cron-job.org) → **Create cronjob** :
 
-- **URL** (méthode **POST**) :
-  `https://api.github.com/repos/VOTRE_PSEUDO/ma-veille/actions/workflows/veille.yml/dispatches`
+- **URL** (method **POST**) :
+  `https://api.github.com/repos/YOUR_USERNAME/my-watch/actions/workflows/veille.yml/dispatches`
 - **HTTP method** : `POST`
 - **Headers** :
-  - `Authorization` : `Bearer <VOTRE_PAT>`
+  - `Authorization` : `Bearer <YOUR_PAT>`
   - `Content-Type` : `application/json`
   - `Accept` : `application/vnd.github+json`
-- **Body** (⚠️ le champ `ref` est **obligatoire**) :
+- **Body** (⚠️ the `ref` field is **required**) :
   `{"ref":"main"}`
-- **Schedule** : l'heure de votre choix, **fuseau `Europe/Paris`**.
+- **Schedule** : the time you want, **timezone `Europe/Paris`** (or yours).
 
-> ⚠️ Deux pièges : le body doit contenir `"ref":"main"` (sinon `422`), et le
-> fuseau doit être explicite (sinon l'heure est interprétée en UTC).
+> ⚠️ Two pitfalls: the body must contain `"ref":"main"` (otherwise `422`), and
+> the timezone must be explicit (otherwise the hour is read as UTC).
 
-### 7. Tester
+### 7. Test it
 
-Sur cron-job.org, cliquez **Run now** sur votre job. Un run doit apparaître
-dans l'onglet **Actions** de votre repo, puis vous recevez votre premier mail.
-
----
-
-## Limites connues (free tier)
-
-- **Quota Gemini** : le free tier limite à ~20 requêtes/jour **par modèle**.
-  Un bot quotidien (1 run/jour) est très loin du plafond. Si vous épuisez le
-  quota, le bot envoie un mail « aucune nouveauté » au lieu de planter.
-- **Flux RSS** : certains éditeurs renvoient parfois un XML mal formé ; le
-  bot les signale dans les logs (`flux illisible`) et continue avec les autres.
-- **Fenêtre 24 h sans persistance** : si un run est raté (quota, panne), les
-  articles de cette journée ne sont pas rattrapés au run suivant.
+On cron-job.org, click **Run now** on your job. A run should appear in the
+**Actions** tab of your repo, then you receive your first email.
 
 ---
 
-## Personnalisation avancée
+## Known limits (free tier)
 
-- **Autre relais SMTP** : changez `smtp_host` / `smtp_port` dans `config.yaml`.
-- **Taille du digest** : ajustez `triage.max_items` et `output.window_hours`.
-- **Plusieurs veilles** : créez plusieurs fichiers `config-*.yaml` et lancez
-  le workflow avec `VEILLE_CONFIG=config-science.yaml`.
+- **Gemini quota** : the free tier caps at ~20 requests/day **per model**.
+  A daily bot (1 run/day) is far below the cap. If you run out of quota, the
+  bot sends an "no news" email instead of crashing.
+- **RSS feeds** : some publishers occasionally return malformed XML; the bot
+  logs them (`unreadable feed`) and continues with the others.
+- **24h window, no persistence** : if a run is skipped (quota, outage), that
+  day's articles are not caught up on the next run.
+
+---
+
+## Advanced customization
+
+- **Different SMTP relay** : change `smtp_host` / `smtp_port` in `config.yaml`.
+- **Digest size** : tune `triage.max_items` and `output.window_hours`.
+- **Several watches** : create multiple `config-*.yaml` files and run the
+  workflow with `VEILLE_CONFIG=config-science.yaml`.
