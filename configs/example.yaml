@@ -1,18 +1,22 @@
-# Exemple de configuration : veille scientifique généraliste haut de gamme.
-# Copiez ce fichier vers config.yaml puis adaptez-le.
+# Example configuration: high-end scientific watch.
+# Copy this file to config.yaml and adapt it.
 
-name: "Ma veille scientifique"
+name: "My scientific watch"
 
 sources:
   rss:
-    # Revues généralistes de premier plan
+    # Top-tier generalist journals
     - url: "https://www.nature.com/nature.rss"
     - url: "https://www.science.org/rss/news_current.xml"
-    # Préprints
+    # Rheumatology & autoimmunity (verified feeds)
+    - url: "https://www.nature.com/nrrheum.rss"
+    - url: "https://ard.bmj.com/rss/current.xml"
+    - url: "https://www.thelancet.com/rssfeed/lanrhe_current.xml"
+    # Preprints
     - url: "https://connect.biorxiv.org/biorxiv_xml.php?subject=cell_biology"
     - url: "https://connect.medrxiv.org/medrxiv_xml.php?subject=oncology"
-  # Hash d'une recherche PubMed sauvegardée (à remplacer par le vôtre).
-  pubmed_query: "VOTRE_HASH_PUBMED_ICI"
+  # Hash of a saved PubMed search (replace with your own).
+  pubmed_query: "YOUR_PUBMED_HASH_HERE"
   google_alerts: []
 
 triage:
@@ -26,8 +30,9 @@ triage:
 
 output:
   format: "cards"
-  subject_prefix: "📚 Veille"
+  subject_prefix: "📚 Watch"
   window_hours: 24
+  send_if_empty: true
 
 transport:
   smtp_host: "smtp.gmail.com"
