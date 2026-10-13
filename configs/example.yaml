@@ -1,1 +1,35 @@
+# Exemple de configuration : veille scientifique généraliste haut de gamme.
+# Copiez ce fichier vers config.yaml puis adaptez-le.
 
+name: "Ma veille scientifique"
+
+sources:
+  rss:
+    # 3 revues généralistes de premier plan
+    - url: "https://www.nature.com/nature.rss"
+    - url: "https://www.science.org/rss/news_current.xml"
+    - url: "https://www.nejm.org/rss/current.xml"
+    # Préprints
+    - url: "https://connect.biorxiv.org/biorxiv_xml.php?subject=cell_biology"
+    - url: "https://connect.medrxiv.org/medrxiv_xml.php?subject=oncology"
+  # Hash d'une recherche PubMed sauvegardée (à remplacer par le vôtre).
+  pubmed_query: "VOTRE_HASH_PUBMED_ICI"
+  google_alerts: []
+
+triage:
+  prompt_file: "prompts/biblio.md"
+  model_chain:
+    - "gemini-3.1-flash-lite"
+    - "gemini-3.6-flash"
+    - "gemini-3.8-flash"
+  max_items: 100
+  dedupe: true
+
+output:
+  format: "cards"
+  subject_prefix: "📚 Veille"
+  window_hours: 24
+
+transport:
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 465
