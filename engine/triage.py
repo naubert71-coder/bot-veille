@@ -1,4 +1,5 @@
-"""Triage des entrées via Gemini, avec bascule de modèle et retry."""
+"""Triage des entrées via Gemini, avec bascule de modèle, retry et timeout."""
+import concurrent.futures
 import os
 import re
 import time
@@ -7,6 +8,10 @@ from google import genai
 from google.genai import errors
 
 _client = None
+
+# Délai maximal accordé à un seul appel Gemini. Au-delà, on considère le
+# modèle comme indisponible et on passe au suivant (évite les runs bloqués).
+_CALL_TIMEOUT = 60
 
 
 def _get_client() -> genai.Client:
@@ -34,6 +39,18 @@ def _build_prompt(prompt_template: str, entries: list[str], max_items: int) -> s
     return f"{prompt_template}\n\nEntrées candidates :\n{content}"
 
 
+def _call_with_timeout(client, model_name: str, prompt: str, timeout: int):
+    """Exécute generate_content avec un délai maximal. Lève TimeoutError si
+    l'appel réseau pend au-delà de `timeout` secondes."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(
+            client.models.generate_content,
+            model=model_name,
+            contents=prompt,
+        )
+        return future.result(timeout=timeout)
+
+
 def triage(config: dict, entries: list[str], prompt_template: str) -> str | None:
     """Retourne le fragment HTML trié, ou None si aucun modèle n'a répondu."""
     triage_cfg = config.get("triage", {})
@@ -50,41 +67,36 @@ def triage(config: dict, entries: list[str], prompt_template: str) -> str | None
     response_text = None
 
     for model_name in model_chain:
-        for attempt in range(3):
-            try:
-                print(f"Tentative avec {model_name} (essai {attempt + 1}/3)...")
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                )
-                text = getattr(response, "text", None)
-                if not text or not text.strip():
-                    finish_reason = None
-                    if response.candidates:
-                        finish_reason = response.candidates[0].finish_reason
-                    print(
-                        f"Réponse vide de {model_name} "
-                        f"(finish_reason={finish_reason}). Modèle suivant..."
-                    )
-                    break
-                response_text = text.strip()
-                print(f"Succès avec le modèle : {model_name}")
-                break
-            except errors.ServerError:
+        try:
+            print(f"Tentative avec {model_name}...")
+            response = _call_with_timeout(client, model_name, prompt, _CALL_TIMEOUT)
+            text = getattr(response, "text", None)
+            if not text or not text.strip():
+                finish_reason = None
+                if response.candidates:
+                    finish_reason = response.candidates[0].finish_reason
                 print(
-                    f"Surcharge temporaire sur {model_name} (503). "
-                    "Attente de 10 s avant réessai..."
+                    f"Réponse vide de {model_name} "
+                    f"(finish_reason={finish_reason}). Modèle suivant..."
                 )
-                time.sleep(10)
-            except errors.ClientError as exc:
-                print(f"Erreur client sur {model_name} ({exc}). Attente de 30 s...")
-                time.sleep(30)
-            except Exception as exc:
-                print(f"Erreur sur {model_name} ({exc}). Modèle suivant...")
-                break
-
-        if response_text:
+                continue
+            response_text = text.strip()
+            print(f"Succès avec le modèle : {model_name}")
             break
+        except concurrent.futures.TimeoutError:
+            print(
+                f"Timeout ({_CALL_TIMEOUT} s) sur {model_name}. "
+                "Modèle suivant..."
+            )
+            continue
+        except errors.ServerError:
+            print(f"Surcharge temporaire sur {model_name} (503). Modèle suivant...")
+            time.sleep(3)
+        except errors.ClientError as exc:
+            print(f"Erreur client sur {model_name} ({exc}). Modèle suivant...")
+            time.sleep(2)
+        except Exception as exc:
+            print(f"Erreur sur {model_name} ({exc}). Modèle suivant...")
 
     if not response_text:
         return None
